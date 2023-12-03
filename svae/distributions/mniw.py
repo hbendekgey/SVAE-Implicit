@@ -1,4 +1,4 @@
-from jax import jit, vmap, custom_vjp, jvp, tree_map
+from jax import vmap, custom_vjp, jvp, tree_map
 from jax.numpy import log, arange, pi, kron, dot, matmul, identity, diag_indices, zeros, diag
 from jax.numpy.linalg import slogdet, cholesky
 from jax.scipy.special import multigammaln, digamma

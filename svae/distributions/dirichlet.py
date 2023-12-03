@@ -1,4 +1,4 @@
-from jax import jit, custom_vjp, jvp
+from jax import custom_vjp, jvp
 from jax.numpy import log
 from jax.lax import lgamma
 from jax.scipy.special import digamma
@@ -7,12 +7,10 @@ from utils import softminus
 from flax.linen import softplus
 # Automatically batched. Assumes last dimension is the parameter dimension, with length K
 
-@jit
 def expected_stats(natparam):
     alpha = natparam + 1
     return digamma(alpha) - digamma(alpha.sum(axis=-1, keepdims=True))
 
-@jit
 def logZ(natparam):
     alpha = natparam + 1
     return lgamma(alpha).sum(axis=-1) - lgamma(alpha.sum(axis=-1))

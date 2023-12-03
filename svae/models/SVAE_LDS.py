@@ -12,7 +12,6 @@ from dataclasses import field
 from inference.MP_Inference import sample_lds, lds_inference_homog, lds_kl, lds_kl_full, lds_transition_params_to_nat, lds_forecast, lds_kl_surr
 from networks.encoders import Encoder
 from networks.decoders import SigmaDecoder
-from distributions.tfp import NormalInverseWishart, MatrixNormalInverseWishart
 import jax
 
 class PGM_LDS(Module):

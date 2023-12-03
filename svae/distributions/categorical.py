@@ -1,4 +1,4 @@
-from jax import jit, vmap
+from jax import vmap
 from jax.numpy import amax, zeros
 from jax.nn import softmax, relu
 from jax.scipy.special import logsumexp
@@ -6,13 +6,11 @@ from utils import straight_through
 import tensorflow_probability.substrates.jax.distributions as tfd
 # Automatically batched
 
-expected_stats = jit(softmax)
+expected_stats = softmax
 
-@jit
 def logZ(natparam):
     return logsumexp(natparam, axis=-1)
 
-@jit
 def expected_stats_underflow_stable(natparam):
     if natparam.dtype == "float64":
         min_log_prob = 24

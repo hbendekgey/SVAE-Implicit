@@ -1,4 +1,4 @@
-from jax import jit, vmap, custom_vjp, jvp
+from jax import vmap, custom_vjp, jvp
 from jax.numpy import log, arange, pi, dot, matmul, expand_dims, identity, diag_indices
 from jax.numpy.linalg import slogdet, cholesky
 from jax.scipy.special import multigammaln, digamma
@@ -21,18 +21,15 @@ import tensorflow_probability.substrates.jax.distributions as tfd
 #
 # NOT automatically batched
 
-@jit
 def nat_to_moment(natparam):
     A, b, lam, d = natparam
     loc = b/lam
     return A - loc.dot(b.T), loc, lam,  d - A.shape[-1] - 2
 
-@jit
 def moment_to_nat(params):
     S, loc, lam, nu = params
     return S + lam * loc.dot(loc.T), lam * loc, lam, nu + S.shape[-1] + 2
 
-@jit
 def expected_stats(natparam):
     S, loc, lam, nu = nat_to_moment(natparam)
     p = S.shape[-1]
@@ -43,7 +40,6 @@ def expected_stats(natparam):
     E_logdet_tau = digamma((nu - arange(p))/2).sum() + p * log(2) - slogdet(S)[1]
     return -E_tau/2, E_tau_mu, -E_muT_tau_mu/2, E_logdet_tau/2
 
-@jit
 def logZ(natparam):
     S, loc, lam, nu = nat_to_moment(natparam)
     p = S.shape[-1]

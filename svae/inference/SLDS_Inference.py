@@ -19,6 +19,9 @@ MAX_ITER = 10
 RICHARDSON_CLIPPING_THRESH = 1e2
 CONV_THRESH = 1e-5
 
+def jit(x, *args, **kwargs):
+    return x
+
 ### Unrolled
 def slds_inference_unrolled_baseline(recog_potentials, E_mniw_params, init, E_init_normalizer, E_init_lps, E_trans_lps, initializer):
     if initializer.shape == (2,):
