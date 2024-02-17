@@ -312,19 +312,19 @@ class DualTrainState(PyTreeNode):
 
     def apply_gradients(self, *, grads, batch_stats, **kwargs):
         """Take a gradient descent step with the specified grads and encapsulated optimizer."""
-        net_grads, pgm_grads = grads.pop('pgm')
-        net_params, pgm_params = self.params.pop('pgm')
+        net_grads, pgm_grads = grads, grads.pop('pgm')
+        net_params, pgm_params = self.params, self.params.pop('pgm')
         if self.tx_net is None:
-            new_opt_state_net, new_params_net = None, net_params
+            new_opt_state_net, new_params = None, net_params
         else:
             net_updates, new_opt_state_net = self.tx_net.update(net_grads, self.opt_state_net, net_params)
-            new_params_net = optax.apply_updates(net_params, net_updates)
+            new_params = optax.apply_updates(net_params, net_updates)
         if self.tx_pgm is None:
             new_opt_state_pgm, new_params_pgm = None, pgm_params
         else:
             pgm_updates, new_opt_state_pgm = self.tx_pgm.update(pgm_grads, self.opt_state_pgm, pgm_params)
             new_params_pgm = optax.apply_updates(pgm_params, pgm_updates)
-        new_params = new_params_net.copy({"pgm": new_params_pgm})
+        new_params.update({"pgm": new_params_pgm})
         return self.replace(
             step=self.step + 1,
             params=new_params,
@@ -337,7 +337,7 @@ class DualTrainState(PyTreeNode):
     @classmethod
     def create(cls, *, apply_fn, params, batch_stats, rng_state, tx_net, tx_pgm, **kwargs):
         """Creates a new instance with `step=0` and initialized `opt_state`."""
-        net_params, pgm_params = params.pop('pgm')
+        net_params, pgm_params = params, params.pop('pgm')
         if tx_net is None:
             opt_state_net = None
         else:
@@ -346,6 +346,7 @@ class DualTrainState(PyTreeNode):
             opt_state_net = None
         else:
             opt_state_pgm = tx_pgm.init(pgm_params)
+        params.update({'pgm': pgm_params})
         return cls(
             step=0,
             apply_fn=apply_fn,
@@ -376,9 +377,10 @@ def create_dual_train_state(rng, learning_rate_net, learning_rate_pgm, model, in
     if network_params is None:
         params = init['params']
     else:
-        params = network_params.copy({"pgm": init['params']['pgm']})
+        network_params.update({"pgm": init['params']['pgm']})
         if init['params'].get('vmp') is not None:
-            params = params.copy({"vmp": init['params']['vmp']})
+            network_params.update({"vmp": init['params']['vmp']})
+        params = network_params
     if batch_stats is None:
         batch_stats = init['batch_stats'] if 'batch_stats' in init else flax.core.FrozenDict()
     return model, DualTrainState.create(
